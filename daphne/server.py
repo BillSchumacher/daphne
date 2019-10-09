@@ -220,6 +220,15 @@ class Server(object):
         ):
             return
         self.check_headers_type(message)
+        try:
+            self.check_headers_type(message)
+        except ValueError:
+            # Send SOME reply, otherwise client waits forever.
+            #   - Why doesn't timeout_checker() kick-in?
+            protocol.basic_error(500, b"Server Error", "It Went Wrong™")
+            # Re-raise to allow StopConsumer
+            #   - return would do as well?
+            raise
         # Let the protocol handle it
         protocol.handle_reply(message)
 
